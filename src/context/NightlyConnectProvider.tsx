@@ -103,7 +103,7 @@ const NightlyConnectProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
       {children}
       {signRequest && (
         <ApproveDialog
-          open={!!signRequest}
+          open={signRequest !== undefined}
           onClose={signRequest.onReject}
           signRequest={signRequest}
         />

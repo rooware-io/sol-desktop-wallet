@@ -45,3 +45,7 @@ Potential advanced features
 - Offline signing
 - Desktop a protocol and create a "bridge"
 - Implement rust crate to allow signing in the desktop from a CLI request
+
+# Demo
+
+![Overview send tokens, connect to jup.ag and approve](misc/tauri-desktop-wallet.gif)
