@@ -21,6 +21,9 @@
       },
       "shell": {
         "open": "^https://explorer.solana.com/"
+      },
+      "clipboard": {
+        "writeText": true
       }
     },
     "bundle": {

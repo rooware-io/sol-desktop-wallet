@@ -25,6 +25,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@rollup/plugin-inject": "^4.0.4",
     "@tauri-apps/cli": "^1.0.5",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
