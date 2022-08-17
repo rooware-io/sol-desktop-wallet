@@ -82,8 +82,8 @@ const NightlyConnectProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
             setSignRequest(undefined);
           },
           onReject: async () => {
+            await client.rejectRequest(signRequest.id);
             setSignRequest(undefined);
-            await client.rejectRequest({ requestId: signRequest.id });
           },
         });
       });
