@@ -31,7 +31,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import TransferDialog from "./components/TransferDialog";
 import { getTokenMap } from "./tools/token-map";
 import { TokenInfo } from "@solana/spl-token-registry";
-import { connection, wallet } from "./config";
+import { connection } from "./config";
 import useUserBalance from "./hooks/useUserBalance";
 import { PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import usePriceInfos from "./hooks/usePriceInfos";

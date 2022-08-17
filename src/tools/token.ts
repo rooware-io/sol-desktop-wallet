@@ -60,6 +60,7 @@ export function unpackAccount(
 
   if (accountInfo.delegateOption === 0) {
     accountInfo.delegate = null;
+    //@ts-ignore
     accountInfo.delegatedAmount = new u64(0);
   } else {
     accountInfo.delegate = new PublicKey(accountInfo.delegate);
