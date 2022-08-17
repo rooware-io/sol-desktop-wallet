@@ -27,6 +27,10 @@ export function useNightlyConnect() {
   return context;
 }
 
+// class ClientSolana {
+//   static async build(a: any): Promise<any> {}
+// }
+
 const NightlyConnectProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
   const [client, setClient] = useState<ClientSolana>();
   const [openConnectDialog, setOpenConnectDialog] = useState(false);
@@ -64,29 +68,29 @@ const NightlyConnectProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
         return;
       }
 
-      client.on("newRequest", async (request) => {
-        const signRequest = request as SignTransactionsRequest;
+      // client.on("newRequest", async (request) => {
+      //   const signRequest = request as SignTransactionsRequest;
 
-        // Sign request
-        const txToSign = Transaction.from(
-          Buffer.from(signRequest.transactions[0], "hex")
-        );
+      //   // Sign request
+      //   const txToSign = Transaction.from(
+      //     Buffer.from(signRequest.transactions[0], "hex")
+      //   );
 
-        setSignRequest({
-          transaction: txToSign,
-          onApprove: async (signedTransaction: Transaction) => {
-            await client.resolveSignTransaction({
-              requestId: signRequest.id,
-              signedTransactions: [signedTransaction],
-            });
-            setSignRequest(undefined);
-          },
-          onReject: async () => {
-            await client.rejectRequest({ requestId: signRequest.id });
-            setSignRequest(undefined);
-          },
-        });
-      });
+      //   setSignRequest({
+      //     transaction: txToSign,
+      //     onApprove: async (signedTransaction: Transaction) => {
+      //       await client.resolveSignTransaction({
+      //         requestId: signRequest.id,
+      //         signedTransactions: [signedTransaction],
+      //       });
+      //       setSignRequest(undefined);
+      //     },
+      //     onReject: async () => {
+      //       await client.rejectRequest({ requestId: signRequest.id });
+      //       setSignRequest(undefined);
+      //     },
+      //   });
+      // });
     }
     setup();
   }, [sessionId]);

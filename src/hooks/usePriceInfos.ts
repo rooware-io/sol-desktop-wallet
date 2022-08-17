@@ -9,6 +9,8 @@ function usePriceInfos(mints: string[] | undefined) {
   return useQuery(
     ["price-in-usd", mints],
     async () => {
+      if (!mints) return;
+
       const result = (await (
         await fetch(
           `https://api.coingecko.com/api/v3/simple/token_price/solana?include_24hr_change=true&vs_currencies=usd&contract_addresses=${mints.join(
