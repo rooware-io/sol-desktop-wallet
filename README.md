@@ -11,10 +11,14 @@ Goals
 - 0 tracking, 0 remote logging
 - Designed for desktop rather than being mobile first and desktop never
 - Trivially customizable
-- Connect to any dApp through nightly connect https://connect.nightly.app/docs/client/client/connect/
+- Connect to any dApp through [nightly connect](https://connect.nightly.app/docs/client/client/connect/)
 - Light but secure
 
 Usage
+
+Currently requires [rustup nightly toolchain](https://rust-lang.github.io/rustup/concepts/channels.html).
+
+To install and run:
 
 `yarn install`
 
