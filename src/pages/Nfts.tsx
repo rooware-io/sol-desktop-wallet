@@ -95,13 +95,17 @@ export default function Nfts() {
   }, [metadatas]);
 
   // We end up showing only master and edition, but not fungible tokens with metadata
-  const metadataWithEditions = useMemo(() => metadatas?.reduce((acc, metadata) => {
-    const edition = mintToEditionMap?.get(metadata.mint.toBase58());
+  const metadataWithEditions = useMemo(() => {
+    if (!mintToEditionMap) return;
+
+    return metadatas?.reduce((acc, metadata) => {
+    const edition = mintToEditionMap.get(metadata.mint.toBase58());
     if (edition) {
       acc.push({metadata, edition});
     }
     return acc;
-  }, new Array<{metadata: Metadata, edition: EditionData}>), [metadatas, mintToEditionMap])
+    }, new Array<{metadata: Metadata, edition: EditionData}>);
+  }, [metadatas, mintToEditionMap])
 
   return (
     <Grid container spacing={2}>
