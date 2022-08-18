@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import inject from "@rollup/plugin-inject";
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
-import nodePolyfills from "rollup-plugin-node-polyfills";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,9 +9,7 @@ export default defineConfig({
   build: {
     target: ["es2021"],
     sourcemap: true,
-    rollupOptions: {
-      plugins: [nodePolyfills({ crypto: true })],
-    },
+    commonjsOptions: { include: [] },
   },
   resolve: {
     alias: {
@@ -27,6 +24,7 @@ export default defineConfig({
     global: {},
   },
   optimizeDeps: {
+    disabled: false,
     esbuildOptions: {
       target: "es2021",
       plugins: [NodeGlobalsPolyfillPlugin({ buffer: true })],

@@ -5,8 +5,10 @@ import {
   CardContent,
   CardMedia,
   Chip,
+  CircularProgress,
   Grid,
   IconButton,
+  Paper,
   Typography,
 } from "@mui/material";
 import { useWalletAccounts } from "../context/WalletAccountsProvider";
@@ -54,7 +56,7 @@ function NftCard({
         )}
       </CardContent>
       <CardActions>
-        <Button>Send</Button>
+        <Button disabled>Send</Button>
         <IconButton disabled>
           <MoreVertIcon />
         </IconButton>
@@ -103,6 +105,10 @@ export default function Nfts() {
 
   return (
     <Grid container spacing={2}>
+      {metadataWithEditions === undefined && 
+        <Grid item xs={6} p={3}>
+          <CircularProgress />
+        </Grid>}
       {metadataWithEditions?.map(({metadata, edition}) => {
         return (
           <Grid item xs={3} key={metadata.mint.toBase58()}>
@@ -113,6 +119,16 @@ export default function Nfts() {
           </Grid>
         );
       })}
+      {metadataWithEditions?.length === 0 && 
+        <Grid item>
+          <Card>
+            <CardContent>
+              <Typography variant="h5">
+                Oh no, it looks like you don't have any NFT...
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>}
     </Grid>
   );
 }
