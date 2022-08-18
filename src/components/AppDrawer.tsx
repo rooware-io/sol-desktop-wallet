@@ -14,6 +14,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import ImageIcon from "@mui/icons-material/Image";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
+import { useNavigate } from "react-router-dom";
 
 export const DRAWER_WIDTH = 240;
 
@@ -33,6 +34,8 @@ function AppDrawer({
   handleDrawerClose: () => void;
   open: boolean;
 }) {
+  const navigate = useNavigate();
+
   return (
     <Drawer
       sx={{
@@ -57,15 +60,24 @@ function AppDrawer({
         {[
           {
             text: "Wallet",
+            to: "/",
             icon: <AccountBalanceWalletIcon />,
             disabled: false,
           },
-          { text: "NFT", icon: <ImageIcon />, disabled: false },
-          { text: "xNFT", icon: <SmartToyIcon />, disabled: true },
-          { text: "Settings", icon: <SettingsIcon />, disabled: false },
-        ].map(({ text, icon, disabled }) => (
+          { text: "NFTs", to: "/nfts", icon: <ImageIcon />, disabled: false },
+          { text: "xNFT", to: "/", icon: <SmartToyIcon />, disabled: true },
+          {
+            text: "Settings",
+            to: "/settings",
+            icon: <SettingsIcon />,
+            disabled: true,
+          },
+        ].map(({ text, to, icon, disabled }) => (
           <ListItem key={text} disablePadding>
-            <ListItemButton disabled={disabled}>
+            <ListItemButton
+              disabled={disabled}
+              onClick={() => navigate(to, { replace: true })}
+            >
               <ListItemIcon>{icon}</ListItemIcon>
               <ListItemText primary={text} />
             </ListItemButton>
