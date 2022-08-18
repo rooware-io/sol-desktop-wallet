@@ -6,14 +6,13 @@ import nodePolyfills from "rollup-plugin-node-polyfills";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    inject({ Buffer: ["buffer", "Buffer"] }),
-    nodePolyfills({ crypto: true }),
-  ],
+  plugins: [react(), inject({ Buffer: ["buffer", "Buffer"] })],
   build: {
     target: ["es2021"],
     sourcemap: true,
+    rollupOptions: {
+      plugins: [nodePolyfills({ crypto: true })],
+    },
   },
   resolve: {
     alias: {

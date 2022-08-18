@@ -3,6 +3,11 @@ import {
   PROGRAM_ID as METAPLEX_PROGRAM_ID,
   Metadata,
   metadataBeet,
+  masterEditionV2Beet,
+  MasterEditionV1,
+  Key,
+  MasterEditionV2,
+  Edition,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { u64 } from "@solana/spl-token";
 import { TokenAccount } from "../token";
@@ -26,11 +31,9 @@ export async function getTokenAccountInfoMetadatas(
 }
 
 export async function getMetadatas(connection: Connection, mints: PublicKey[]) {
-  let metadataAddresses = await Promise.all(
-    mints.map((pk) => {
-      return findMetadataPda(pk);
-    })
-  );
+  let metadataAddresses = mints.map((pk) => {
+    return findMetadataPda(pk);
+  });
 
   const accountInfoMap = await chunkedGetMultipleAccountInfos(
     connection,
@@ -52,6 +55,54 @@ export async function getMetadatas(connection: Connection, mints: PublicKey[]) {
   );
 
   return metadatas;
+}
+
+export type EditionData = MasterEditionV1 | MasterEditionV2 | Edition;
+
+/** Get the editions from metadatas and deserialize it */
+export async function getMetadataEditions(
+  connection: Connection,
+  metadatas: Metadata[]
+) {
+  const [editionAddresses, editionAddressToMintMap] = metadatas.reduce(
+    (acc, metadata) => {
+      const pda = findEditionPda(metadata.mint);
+      acc[0].push(pda);
+      acc[1].set(pda.toBase58(), metadata.mint.toBase58());
+
+      return acc;
+    },
+    [new Array<PublicKey>(), new Map<string, string>()]
+  );
+
+  const accountInfoMap = await chunkedGetMultipleAccountInfos(
+    connection,
+    editionAddresses
+  );
+
+  const editions = [...accountInfoMap.entries()].reduce((acc, [pk, ai]) => {
+    if (ai) {
+      try {
+        const mint = editionAddressToMintMap.get(pk)!;
+
+        const key = ai.data[0];
+        // Pain starts here
+        if (key === Key.MasterEditionV1) {
+          acc.set(mint, MasterEditionV1.deserialize(ai.data)[0]);
+        } else if (key === Key.MasterEditionV2) {
+          acc.set(mint, MasterEditionV2.deserialize(ai.data)[0]);
+        } else if (key === Key.EditionV1) {
+          acc.set(mint, Edition.deserialize(ai.data)[0]);
+        }
+        // Otherwise too bad mate
+      } catch (e) {
+        // Ignore broken stuff
+      }
+    }
+    return acc;
+  }, new Map<string, EditionData>());
+
+  return editions;
 }
 
 export function findMetadataPda(mint: PublicKey): PublicKey {
