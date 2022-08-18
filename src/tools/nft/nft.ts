@@ -2,8 +2,6 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import {
   PROGRAM_ID as METAPLEX_PROGRAM_ID,
   Metadata,
-  metadataBeet,
-  masterEditionV2Beet,
   MasterEditionV1,
   Key,
   MasterEditionV2,
@@ -44,7 +42,7 @@ export async function getMetadatas(connection: Connection, mints: PublicKey[]) {
     (acc, [_, ai]) => {
       if (ai) {
         try {
-          acc.push(metadataBeet.deserialize(ai.data)[0]);
+          acc.push(Metadata.deserialize(ai.data)[0]);
         } catch (e) {
           // Ingore broken stuff
         }
