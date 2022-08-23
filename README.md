@@ -11,10 +11,12 @@ Goals
 - 0 tracking, 0 remote logging
 - Designed for desktop rather than being mobile first and desktop never
 - Trivially customizable
-- Connect to any dApp through nightly connect https://connect.nightly.app/docs/client/client/connect/
+- Connect to any dApp through [Nightly connect](https://connect.nightly.app/docs/client/client/connect/)
 - Light but secure
 
-Usage
+Usage/Setup
+
+https://tauri.app/v1/guides/getting-started/prerequisites/
 
 `yarn install`
 
