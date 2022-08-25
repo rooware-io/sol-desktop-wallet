@@ -71,6 +71,7 @@ export default function TransferDialog({
       symbol: string;
       decimals: number;
       isSolana?: boolean;
+      isNft?: boolean;
     };
   };
 }) {
@@ -79,7 +80,7 @@ export default function TransferDialog({
     { signature: string; uiAmount: string; uiRecipient: string }[]
   >([]);
   const [uiRecipient, setUiRecipient] = useState<string>("");
-  const [uiAmount, setUiAmount] = useState<string>("");
+  const [uiAmount, setUiAmount] = useState<string>(tokenInfo.isNft ? "1" : "");
 
   // Careful here won't update when invalid
   const amount = useMemo(() => {
@@ -101,6 +102,7 @@ export default function TransferDialog({
       onClose={onClose}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
+      fullWidth
     >
       <DialogTitle>
         <Typography>Send {tokenInfo.symbol}</Typography>
@@ -114,19 +116,21 @@ export default function TransferDialog({
           onChange={(e) => setUiRecipient(e.target.value)}
           label="Recipient"
         ></TextField>
-        <TextField
-          fullWidth
-          variant="outlined"
-          margin="normal"
-          type="number"
-          value={uiAmount}
-          onChange={(e) => setUiAmount(e.target.value)}
-          helperText={`You have ${amountToUiAmount(
-            tokenAccount.amount,
-            tokenInfo.decimals
-          )} (${tokenInfo.symbol})`}
-          label="Amount"
-        ></TextField>
+        {!tokenInfo.isNft && (
+          <TextField
+            fullWidth
+            variant="outlined"
+            margin="normal"
+            type="number"
+            value={uiAmount}
+            onChange={(e) => setUiAmount(e.target.value)}
+            helperText={`You have ${amountToUiAmount(
+              tokenAccount.amount,
+              tokenInfo.decimals
+            )} (${tokenInfo.symbol})`}
+            label="Amount"
+          />
+        )}
         {previousTransfers?.map((previousTransfer, index) => (
           <Alert severity="success" key={index}>
             Successfully sent {previousTransfer.uiAmount} to{" "}
