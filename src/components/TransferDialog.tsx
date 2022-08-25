@@ -80,7 +80,7 @@ export default function TransferDialog({
     { signature: string; uiAmount: string; uiRecipient: string }[]
   >([]);
   const [uiRecipient, setUiRecipient] = useState<string>("");
-  const [uiAmount, setUiAmount] = useState<string>("");
+  const [uiAmount, setUiAmount] = useState<string>(tokenInfo.isNft ? "1" : "");
 
   // Careful here won't update when invalid
   const amount = useMemo(() => {
