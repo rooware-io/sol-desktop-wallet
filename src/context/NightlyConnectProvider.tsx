@@ -1,4 +1,7 @@
-import { ClientSolana, SignTransactionsRequest } from "@nightlylabs/connect";
+import {
+  ClientSolana,
+  SignTransactionsRequest,
+} from "@nightlylabs/connect-solana";
 import { Transaction } from "@solana/web3.js";
 import {
   createContext,
@@ -10,6 +13,7 @@ import {
 } from "react";
 import { ApproveDialog } from "../components/ApproveDialog";
 import { NightlyConnectDialog } from "../components/NigthlyConnectDialog";
+import { connection } from "../config";
 import { useWallet } from "./WalletProvider";
 
 const NightlyConnectContext = createContext<{
@@ -46,7 +50,6 @@ const NightlyConnectProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
         setClient(undefined);
         return;
       }
-
       let { client, data } = await ClientSolana.build({
         sessionId,
       });
@@ -56,6 +59,7 @@ const NightlyConnectProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
         await client.connect({
           publicKey: wallet.publicKey,
           sessionId,
+          token: "",
         });
         setConnected(true);
       } catch (e) {
