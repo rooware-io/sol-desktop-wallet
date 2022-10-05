@@ -3,6 +3,7 @@ import {
   PublicKey,
   Transaction,
   TransactionInstruction,
+  VersionedTransaction,
 } from "@solana/web3.js";
 import { readTextFile, BaseDirectory } from "@tauri-apps/api/fs";
 import {
@@ -22,6 +23,9 @@ interface Wallet {
   sendInstructions: (instructions: TransactionInstruction[]) => Promise<string>;
   sendTransaction: () => Promise<string>;
   signTransaction(transaction: Transaction): Transaction;
+  signVersionedTransaction(
+    versionedTransaction: VersionedTransaction
+  ): VersionedTransaction;
 }
 
 class FileSystemWallet implements Wallet {
@@ -61,9 +65,14 @@ class FileSystemWallet implements Wallet {
     throw new Error("Not implemented");
   }
 
-  signTransaction(transaction: Transaction): Transaction {
+  signTransaction(transaction: Transaction) {
     transaction.sign(this.keypair);
     return transaction;
+  }
+
+  signVersionedTransaction(versionedTransaction: VersionedTransaction) {
+    versionedTransaction.sign([this.keypair]);
+    return versionedTransaction;
   }
 }
 
