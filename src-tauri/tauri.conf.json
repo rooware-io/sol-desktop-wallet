@@ -17,7 +17,9 @@
       },
       "fs": {
         "readFile": true,
-        "scope": ["$APP/*"]
+        "scope": [
+          "$APP/*"
+        ]
       },
       "shell": {
         "open": "^https://explorer.solana.com/"

@@ -13,7 +13,6 @@ import {
 } from "react";
 import { ApproveDialog } from "../components/ApproveDialog";
 import { NightlyConnectDialog } from "../components/NigthlyConnectDialog";
-import { connection } from "../config";
 import { useWallet } from "./WalletProvider";
 
 const NightlyConnectContext = createContext<{
