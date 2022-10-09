@@ -115,7 +115,7 @@ export function uiAmountToAmount(
   return new u64(amountString);
 }
 
-// Source: https://github.com/solana-labs/solana-program-library/blob/dc5684445f0b42ba36a0157f06c561d967a7cb34/associated-token-account/program/src/instruction.rs#L16-L25
+// Source: https://github.com/solana-labs/solana-program-library/blob/dc5684445f0b42ba36a0157f06c561d967a7cb34/associated-token-account/program/src/instruction.rs#L26-L36
 export function createIdempotentAssociatedTokenAccountInstruction({
   payer,
   ata,
