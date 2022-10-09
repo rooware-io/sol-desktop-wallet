@@ -12,7 +12,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { connection } from "../config";
 import usePriceInfos from "../hooks/usePriceInfos";
 import useUserBalance from "../hooks/useUserBalance";
 import {
@@ -24,6 +23,7 @@ import { getTokenMap } from "../tools/token-map";
 import { useWallet } from "./WalletProvider";
 import { u64 } from "@solana/spl-token";
 import * as math from "mathjs";
+import { useConnection } from "./ConnectionProvider";
 
 const WalletAccountsContext = createContext<{
   userBalance: number | undefined;
@@ -43,6 +43,7 @@ export function useWalletAccounts() {
   return context;
 }
 const WalletAccountsProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
+  const { connection } = useConnection();
   const { wallet } = useWallet();
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>();
 

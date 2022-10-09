@@ -1,8 +1,9 @@
 import { PublicKey } from "@solana/web3.js";
 import { useQuery } from "@tanstack/react-query";
-import { connection } from "../config";
+import { useConnection } from "../context/ConnectionProvider";
 
 function useUserBalance(user: PublicKey | undefined) {
+  const { connection } = useConnection();
   return useQuery(
     ["user-balance", user?.toBase58()],
     async () => {

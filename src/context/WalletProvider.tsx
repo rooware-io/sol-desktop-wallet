@@ -1,4 +1,5 @@
 import {
+  Connection,
   Keypair,
   PublicKey,
   Transaction,
@@ -14,7 +15,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { connection } from "../config";
+import { useConnection } from "./ConnectionProvider";
 
 interface Wallet {
   label: string;
@@ -31,7 +32,7 @@ interface Wallet {
 class FileSystemWallet implements Wallet {
   label = "keypair";
 
-  constructor(private keypair: Keypair) {}
+  constructor(readonly connection: Connection, private keypair: Keypair) {}
 
   get publicKey() {
     return this.keypair.publicKey;
@@ -39,7 +40,7 @@ class FileSystemWallet implements Wallet {
 
   async sendInstructions(instructions: TransactionInstruction[]) {
     const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash();
+      await this.connection.getLatestBlockhash();
 
     const tx = new Transaction({
       feePayer: this.keypair.publicKey,
@@ -47,12 +48,16 @@ class FileSystemWallet implements Wallet {
       lastValidBlockHeight,
     });
     tx.instructions = instructions;
-    const signature = await connection.sendTransaction(tx, [this.keypair], {
+    const signature = await this.connection.sendTransaction(
+      tx,
+      [this.keypair],
+      {
       skipPreflight: false,
-    });
+      }
+    );
     console.log(`Sent ${signature}`);
 
-    await connection.confirmTransaction({
+    await this.connection.confirmTransaction({
       blockhash,
       lastValidBlockHeight,
       signature,
@@ -87,8 +92,10 @@ export function useWallet() {
   }
   return context;
 }
+
 const WalletProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
   const [wallet, setWallet] = useState<Wallet>();
+  const { connection } = useConnection();
 
   useEffect(() => {
     async function setup() {

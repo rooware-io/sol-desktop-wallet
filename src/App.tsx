@@ -19,6 +19,7 @@ import AddIcon from "@mui/icons-material/Add";
 import CheckIcon from "@mui/icons-material/Check";
 import Home from "./pages/Home";
 import Nfts from "./pages/Nfts";
+import Settings from "./pages/Settings";
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -76,6 +77,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/nfts" element={<Nfts />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </Main>
         </Box>

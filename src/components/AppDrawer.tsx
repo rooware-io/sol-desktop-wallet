@@ -70,7 +70,7 @@ function AppDrawer({
             text: "Settings",
             to: "/settings",
             icon: <SettingsIcon />,
-            disabled: true,
+            disabled: false,
           },
         ].map(({ text, to, icon, disabled }) => (
           <ListItem key={text} disablePadding>
