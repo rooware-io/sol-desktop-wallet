@@ -104,7 +104,7 @@ type NftInfo = {
   edition: EditionData;
 };
 
-export default function Nfts() {
+export default function NftsPage() {
   const [metadatas, setMetadatas] = useState<Metadata[]>();
   const [mintToEditionMap, setMintToEditionMap] =
     useState<Map<string, EditionData>>();

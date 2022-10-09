@@ -44,6 +44,7 @@ fn create_keypair_file() {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_store::PluginBuilder::default().build())
         .setup(|app| {
             setup_folders(&app.path_resolver())?;
             let main_window = app.get_window("main").unwrap();

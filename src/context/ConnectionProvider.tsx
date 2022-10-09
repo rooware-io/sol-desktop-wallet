@@ -2,11 +2,13 @@ import {
   createContext,
   FC,
   PropsWithChildren,
+  useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
 import { Connection } from "@solana/web3.js";
+import { UserSettings, userSettingsStore } from "../pages/Settings";
 
 export const RPC_ENDPOINTS = [
   "https://ssc-dao.genesysgo.net",
@@ -15,7 +17,7 @@ export const RPC_ENDPOINTS = [
 
 const ConnectionContext = createContext<{
   connection: Connection;
-  setRpcUrl: (url: string) => void;
+  setRpcEndpooint: (url: string) => void;
 } | null>(null);
 
 export function useConnection() {
@@ -27,20 +29,29 @@ export function useConnection() {
 }
 
 const ConnectionProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
-  const [rpcUrl, setRpcUrl] = useState<string>(RPC_ENDPOINTS[0]);
   const [connection, setConnection] = useState<Connection>(
-    new Connection(rpcUrl, "confirmed")
+    new Connection(RPC_ENDPOINTS[0], "confirmed")
   );
 
   useEffect(() => {
-    setConnection(new Connection(rpcUrl, "confirmed"));
-  }, [rpcUrl]);
+    (async function () {
+      const savedRpcEnpoint = await userSettingsStore.get<string>(
+        UserSettings.RPC_ENDPOINT
+      );
+      if (savedRpcEnpoint)
+        setConnection(new Connection(savedRpcEnpoint, "confirmed"));
+    })();
+  }, []);
+
+  const setRpcEndpooint = useCallback((url: string) => {
+    setConnection(new Connection(url, "confirmed"));
+  }, []);
 
   return (
     <ConnectionContext.Provider
       value={{
         connection,
-        setRpcUrl,
+        setRpcEndpooint,
       }}
     >
       {children}

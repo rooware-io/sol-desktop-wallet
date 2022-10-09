@@ -11,8 +11,8 @@ import {
   createContext,
   FC,
   PropsWithChildren,
+  useCallback,
   useContext,
-  useEffect,
   useState,
 } from "react";
 import { useConnection } from "./ConnectionProvider";
@@ -105,10 +105,10 @@ const WalletProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
         )
       );
       const keypair = Keypair.fromSecretKey(privateKey);
-      setWallet(new FileSystemWallet(keypair));
-    }
-    setup();
-  }, []);
+      setWallet(new FileSystemWallet(connection, keypair));
+    },
+    [connection]
+  );
 
   return (
     <WalletContext.Provider

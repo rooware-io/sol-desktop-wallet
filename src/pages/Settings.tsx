@@ -5,12 +5,21 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
+import { Store } from "tauri-plugin-store-api";
 import { RPC_ENDPOINTS, useConnection } from "../context/ConnectionProvider";
 
-export default function Settings() {
-  const { connection, setRpcUrl } = useConnection();
-  const onChange = (event: SelectChangeEvent) => {
-    setRpcUrl(event.target.value);
+export const userSettingsStore = new Store(".user-settings.dat");
+
+export enum UserSettings {
+  RPC_ENDPOINT = "rpc-endpoint",
+}
+
+export default function SettingsPage() {
+  const { connection, setRpcEndpooint } = useConnection();
+  const onChange = async (event: SelectChangeEvent) => {
+    const newEndpoint = event.target.value;
+    await userSettingsStore.set(UserSettings.RPC_ENDPOINT, newEndpoint);
+    setRpcEndpooint(newEndpoint);
   };
   return (
     <>
