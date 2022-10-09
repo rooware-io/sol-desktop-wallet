@@ -12,6 +12,7 @@ export const userSettingsStore = new Store(".user-settings.dat");
 
 export enum UserSettings {
   RPC_ENDPOINT = "rpc-endpoint",
+  WALLET = "wallet",
 }
 
 export default function SettingsPage() {

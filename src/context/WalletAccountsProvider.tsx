@@ -54,7 +54,7 @@ const WalletAccountsProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
       if (!wallet) return;
       return getUserTokenAccountsWithContext(connection, wallet.publicKey);
     },
-    { refetchInterval: 5_000 }
+    { refetchInterval: 5_000, enabled: !!wallet }
   );
   const tokenAccounts = useMemo(() => {
     const newTokenAccounts =

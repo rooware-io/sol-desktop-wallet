@@ -38,8 +38,9 @@ const ConnectionProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
       const savedRpcEnpoint = await userSettingsStore.get<string>(
         UserSettings.RPC_ENDPOINT
       );
-      if (savedRpcEnpoint)
+      if (savedRpcEnpoint) {
         setConnection(new Connection(savedRpcEnpoint, "confirmed"));
+      }
     })();
   }, []);
 
