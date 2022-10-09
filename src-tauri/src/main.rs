@@ -1,10 +1,19 @@
 #![cfg_attr(
-  all(not(debug_assertions), target_os = "windows"),
-  windows_subsystem = "windows"
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
 )]
 
 use anyhow::Result;
-use tauri::{LogicalSize, Manager, Position, Size, Window, Wry};
+use std::{fs, path::Path};
+use tauri::{LogicalSize, Manager, PathResolver, Position, Size, Window, Wry};
+
+fn setup_folders(path_resolver: &PathResolver) -> Result<()> {
+    let app_dir = path_resolver.app_dir().unwrap();
+    if !Path::new(&app_dir).exists() {
+        fs::create_dir_all(app_dir)?;
+    }
+    Ok(())
+}
 
 fn setup_window_dimensions(window: &Window<Wry>) -> Result<()> {
     if let Some(monitor) = Window::current_monitor(&window)? {
@@ -27,14 +36,22 @@ fn setup_window_dimensions(window: &Window<Wry>) -> Result<()> {
     }
     Ok(())
 }
+
+#[tauri::command]
+fn create_keypair_file() {
+    println!("I was invoked from JS!");
+}
+
 fn main() {
-  tauri::Builder::default()
+    tauri::Builder::default()
         .setup(|app| {
+            setup_folders(&app.path_resolver())?;
             let main_window = app.get_window("main").unwrap();
             setup_window_dimensions(&main_window)
                 .unwrap_or_else(|err| println!("Failed to set window size/position: {}", err));
             Ok(())
         })
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+        .invoke_handler(tauri::generate_handler![create_keypair_file])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
