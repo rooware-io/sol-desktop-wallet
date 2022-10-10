@@ -21,7 +21,6 @@ import {
   getMetadataEditions,
   EditionData,
 } from "../tools/nft/nft";
-import { connection } from "../config";
 import {
   Edition,
   Key,
@@ -30,6 +29,7 @@ import {
 import TransferDialog from "../components/TransferDialog";
 import { TokenAccount } from "../tools/token";
 import { u64 } from "@solana/spl-token";
+import { useConnection } from "../context/ConnectionProvider";
 
 function NftCard({ nftInfo }: { nftInfo: NftInfo }) {
   const { tokenAccount, metadata, edition } = nftInfo;
@@ -104,11 +104,12 @@ type NftInfo = {
   edition: EditionData;
 };
 
-export default function Nfts() {
+export default function NftsPage() {
   const [metadatas, setMetadatas] = useState<Metadata[]>();
   const [mintToEditionMap, setMintToEditionMap] =
     useState<Map<string, EditionData>>();
   const { filteredTokenAccounts } = useWalletAccounts();
+  const { connection } = useConnection();
 
   useEffect(() => {
     async function update() {

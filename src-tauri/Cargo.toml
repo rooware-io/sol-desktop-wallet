@@ -12,13 +12,17 @@ rust-version = "1.57"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1.0.4", features = [] }
+tauri-build = { version = "1.1.1", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.0.5", features = ["clipboard-write-text", "fs-read-file", "http-all", "shell-open"] }
+tauri = { version = "1.1.1", features = ["clipboard-write-text", "dialog-open", "fs-read-dir", "fs-read-file", "http-all", "path-all", "shell-open"] }
+tauri-plugin-store = { git = "https://github.com/tauri-apps/tauri-plugin-store", rev = "4326f75446b8b9e0cb9904c65f258b81e23e544e" }
+tauri-plugin-fs-watch = { git = "https://github.com/tauri-apps/tauri-plugin-fs-watch", rev = "44e0bb889b78cd6e6fa6255b3d39b8637cda98bd" }
+
 anyhow = "1.0.64"
+solana-sdk = "1.14.5"
 
 [features]
 # by default Tauri runs in production mode

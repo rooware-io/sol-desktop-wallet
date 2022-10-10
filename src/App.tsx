@@ -17,8 +17,10 @@ import AppDrawer, { DRAWER_WIDTH } from "./components/AppDrawer";
 import { useNightlyConnect } from "./context/NightlyConnectProvider";
 import AddIcon from "@mui/icons-material/Add";
 import CheckIcon from "@mui/icons-material/Check";
-import Home from "./pages/Home";
-import Nfts from "./pages/Nfts";
+import HomePage from "./pages/Home";
+import NftsPage from "./pages/Nfts";
+import SettingsPage from "./pages/Settings";
+import SelectAccountPage from "./pages/SelectAccount";
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -74,8 +76,10 @@ function App() {
         <Box>
           <Main open={open}>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/nfts" element={<Nfts />} />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/select-account" element={<SelectAccountPage />} />
+              <Route path="/nfts" element={<NftsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </Main>
         </Box>

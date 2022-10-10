@@ -1,4 +1,5 @@
 import {
+  Connection,
   Keypair,
   PublicKey,
   Transaction,
@@ -10,11 +11,13 @@ import {
   createContext,
   FC,
   PropsWithChildren,
+  useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
-import { connection } from "../config";
+import { UserSettings, userSettingsStore } from "../pages/Settings";
+import { useConnection } from "./ConnectionProvider";
 
 interface Wallet {
   label: string;
@@ -31,7 +34,7 @@ interface Wallet {
 class FileSystemWallet implements Wallet {
   label = "keypair";
 
-  constructor(private keypair: Keypair) {}
+  constructor(readonly connection: Connection, private keypair: Keypair) {}
 
   get publicKey() {
     return this.keypair.publicKey;
@@ -39,7 +42,7 @@ class FileSystemWallet implements Wallet {
 
   async sendInstructions(instructions: TransactionInstruction[]) {
     const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash();
+      await this.connection.getLatestBlockhash();
 
     const tx = new Transaction({
       feePayer: this.keypair.publicKey,
@@ -47,12 +50,16 @@ class FileSystemWallet implements Wallet {
       lastValidBlockHeight,
     });
     tx.instructions = instructions;
-    const signature = await connection.sendTransaction(tx, [this.keypair], {
-      skipPreflight: false,
-    });
+    const signature = await this.connection.sendTransaction(
+      tx,
+      [this.keypair],
+      {
+        skipPreflight: false,
+      }
+    );
     console.log(`Sent ${signature}`);
 
-    await connection.confirmTransaction({
+    await this.connection.confirmTransaction({
       blockhash,
       lastValidBlockHeight,
       signature,
@@ -78,6 +85,7 @@ class FileSystemWallet implements Wallet {
 
 const WalletContext = createContext<{
   wallet: Wallet | undefined;
+  setFileSystemWallet: (keypairFilename: string) => void;
 } | null>(null);
 
 export function useWallet() {
@@ -87,26 +95,60 @@ export function useWallet() {
   }
   return context;
 }
+
 const WalletProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
   const [wallet, setWallet] = useState<Wallet>();
+  const { connection } = useConnection();
 
-  useEffect(() => {
-    async function setup() {
-      const privateKey = new Uint8Array(
-        JSON.parse(
-          await readTextFile("keypair.json", { dir: BaseDirectory.App })
+  const setFileSystemWallet = useCallback(
+    async (fileName: string) => {
+      const keypair = Keypair.fromSecretKey(
+        new Uint8Array(
+          JSON.parse(
+            await readTextFile(`keypairs/${fileName}.json`, {
+              dir: BaseDirectory.App,
+            })
+          )
         )
       );
-      const keypair = Keypair.fromSecretKey(privateKey);
-      setWallet(new FileSystemWallet(keypair));
-    }
-    setup();
+      setWallet(new FileSystemWallet(connection, keypair));
+    },
+    [connection]
+  );
+
+  useEffect(() => {
+    (async function () {
+      const savedWallet = await userSettingsStore.get<string>(
+        UserSettings.WALLET
+      );
+      if (savedWallet) {
+        try {
+          const keypair = Keypair.fromSecretKey(
+            new Uint8Array(
+              JSON.parse(
+                await readTextFile(`keypairs/${savedWallet}.json`, {
+                  dir: BaseDirectory.App,
+                })
+              )
+            )
+          );
+          /* stored wallet might needs to specify what type it is to know what class to instantiate */
+          setWallet(new FileSystemWallet(connection, keypair));
+        } catch {
+          console.log(
+            `Error while loading saved wallet ${savedWallet}. Clearing '${UserSettings.WALLET}' cache entry.`
+          );
+          userSettingsStore.delete(UserSettings.WALLET);
+        }
+      }
+    })();
   }, []);
 
   return (
     <WalletContext.Provider
       value={{
         wallet,
+        setFileSystemWallet,
       }}
     >
       {children}

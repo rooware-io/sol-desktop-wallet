@@ -14,6 +14,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import ImageIcon from "@mui/icons-material/Image";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
+import FolderIcon from "@mui/icons-material/Folder";
 import { useNavigate } from "react-router-dom";
 
 export const DRAWER_WIDTH = 240;
@@ -67,10 +68,16 @@ function AppDrawer({
           { text: "NFTs", to: "/nfts", icon: <ImageIcon />, disabled: false },
           { text: "xNFT", to: "/", icon: <SmartToyIcon />, disabled: true },
           {
+            text: "All accounts",
+            to: "/select-account",
+            icon: <FolderIcon />,
+            disabled: false,
+          },
+          {
             text: "Settings",
             to: "/settings",
             icon: <SettingsIcon />,
-            disabled: true,
+            disabled: false,
           },
         ].map(({ text, to, icon, disabled }) => (
           <ListItem key={text} disablePadding>

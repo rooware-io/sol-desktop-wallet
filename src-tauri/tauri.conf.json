@@ -17,15 +17,22 @@
       },
       "fs": {
         "readFile": true,
+        "readDir": true,
         "scope": [
           "$APP/*"
         ]
+      },
+      "path": {
+        "all": true
       },
       "shell": {
         "open": "^https://explorer.solana.com/"
       },
       "clipboard": {
         "writeText": true
+      },
+      "dialog": {
+        "open": true
       }
     },
     "bundle": {

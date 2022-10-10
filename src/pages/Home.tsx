@@ -22,7 +22,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { amountToUiAmount } from "../tools/token";
 import { useWalletAccounts } from "../context/WalletAccountsProvider";
 
-export default function Home() {
+export default function HomePage() {
   const [openTransferDialog, setOpenTransferDialog] = useState(false);
   const [
     selectedTokenAccountWithTokenInfo,
@@ -44,6 +44,8 @@ export default function Home() {
     emptyTokenAccounts,
     tokenMap,
   } = useWalletAccounts();
+
+  if (!wallet) return null;
 
   return (
     <>
