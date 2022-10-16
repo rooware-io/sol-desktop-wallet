@@ -16,6 +16,8 @@ import ImageIcon from "@mui/icons-material/Image";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
 import FolderIcon from "@mui/icons-material/Folder";
 import { useNavigate } from "react-router-dom";
+import Dev from "../pages/Dev";
+import { PrecisionManufacturing } from "@mui/icons-material";
 
 export const DRAWER_WIDTH = 240;
 
@@ -71,6 +73,11 @@ function AppDrawer({
             text: "All accounts",
             to: "/select-account",
             icon: <FolderIcon />,
+          },
+          {
+            text: "Dev",
+            to: "/dev",
+            icon: <PrecisionManufacturing />,
             disabled: false,
           },
           {
