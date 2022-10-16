@@ -25,10 +25,9 @@ interface Wallet {
   /** Handles setting up the transaction and assumes a single signer, the wallet */
   sendInstructions: (instructions: TransactionInstruction[]) => Promise<string>;
   sendTransaction: () => Promise<string>;
-  signTransaction(transaction: Transaction): Transaction;
-  signVersionedTransaction(
-    versionedTransaction: VersionedTransaction
-  ): VersionedTransaction;
+  signTransaction<T extends Transaction | VersionedTransaction>(
+    transaction: T
+  ): T;
 }
 
 class FileSystemWallet implements Wallet {
@@ -72,14 +71,15 @@ class FileSystemWallet implements Wallet {
     throw new Error("Not implemented");
   }
 
-  signTransaction(transaction: Transaction) {
-    transaction.sign(this.keypair);
+  signTransaction<T extends Transaction | VersionedTransaction>(
+    transaction: T
+  ) {
+    if ("message" in transaction) {
+      transaction.sign([this.keypair]);
+    } else {
+      transaction.sign(this.keypair);
+    }
     return transaction;
-  }
-
-  signVersionedTransaction(versionedTransaction: VersionedTransaction) {
-    versionedTransaction.sign([this.keypair]);
-    return versionedTransaction;
   }
 }
 

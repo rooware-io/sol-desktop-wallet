@@ -21,6 +21,7 @@ import HomePage from "./pages/Home";
 import NftsPage from "./pages/Nfts";
 import SettingsPage from "./pages/Settings";
 import SelectAccountPage from "./pages/SelectAccount";
+import Dev from "./pages/Dev";
 
 const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })<{
   open?: boolean;
@@ -77,8 +78,9 @@ function App() {
           <Main open={open}>
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/select-account" element={<SelectAccountPage />} />
               <Route path="/nfts" element={<NftsPage />} />
+              <Route path="/select-account" element={<SelectAccountPage />} />
+              <Route path="/dev" element={<Dev />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </Main>
