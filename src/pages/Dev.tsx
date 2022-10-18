@@ -20,7 +20,8 @@ import base58 from "bs58";
 
 export default function Dev() {
   const [rawTransaction, setRawTransaction] = useState<string>("");
-  const [error, setError] = useState<string>();
+  const [rawTransactionError, setRawTransactionError] = useState<string>();
+  const [sendTransactionError, setSendTransactionError] = useState<string>();
   const [txData, setTxData] = useState<{
     versionedTransaction: VersionedTransaction;
     transactionMessage: TransactionMessage;
@@ -32,15 +33,21 @@ export default function Dev() {
 
   useEffect(() => {
     async function update() {
-      if (!rawTransaction) return;
+      setRawTransactionError(undefined);
+      setSendTransactionError(undefined);
+      setTxData(undefined);
+      if (rawTransaction === "") return;
+
       try {
+        setRawTransactionError(undefined);
+        setSendTransactionError(undefined);
         const versionedTransaction = VersionedTransaction.deserialize(
           Buffer.from(rawTransaction, "base64")
         );
         const addressLookupTableAccountInfos =
           await connection.getMultipleAccountsInfo(
             versionedTransaction.message.addressTableLookups.map(
-              (table) => table.accountKey
+              ({ accountKey }) => accountKey
             )
           );
         const addressLookupTableAccounts = addressLookupTableAccountInfos.map(
@@ -63,11 +70,9 @@ export default function Dev() {
           { addressLookupTableAccounts }
         );
         setTxData({ versionedTransaction, transactionMessage });
-        setError(undefined);
       } catch (e) {
         console.error(e);
-        setTxData(undefined);
-        setError(`${e}`);
+        setRawTransactionError(`${e}`);
       }
     }
 
@@ -86,7 +91,7 @@ export default function Dev() {
           minRows={5}
           style={{ width: 600 }}
         />
-        {error && <span>{error}</span>}
+        {rawTransactionError && <span>{rawTransactionError}</span>}
       </div>
       <div>
         {/* <Button>Simulate</Button> */}
@@ -99,27 +104,32 @@ export default function Dev() {
           onClick={async () => {
             if (!wallet || !txData) return;
             setSending(true);
+            setSendTransactionError(undefined);
             const { lastValidBlockHeight, blockhash } =
               await connection.getLatestBlockhash();
             let versionedTransaction = txData.versionedTransaction;
             versionedTransaction.message.recentBlockhash = blockhash;
-            versionedTransaction = wallet.signTransaction(
-              txData.versionedTransaction
-            );
 
-            const signature = await sendAndConfirmRawTransaction(
-              connection,
-              Buffer.from(versionedTransaction.serialize()),
-              {
-                signature: base58.encode(versionedTransaction.signatures[0]),
-                lastValidBlockHeight,
-                blockhash,
-              }
-            );
+            try {
+              versionedTransaction = wallet.signTransaction(
+                txData.versionedTransaction
+              );
+              const signature = await sendAndConfirmRawTransaction(
+                connection,
+                Buffer.from(versionedTransaction.serialize()),
+                {
+                  signature: base58.encode(versionedTransaction.signatures[0]),
+                  lastValidBlockHeight,
+                  blockhash,
+                }
+              );
+              setSignature(signature);
+              console.log(`Sent and confirmed tx: ${signature}`);
+            } catch (e: any) {
+              console.error(e);
+              setSendTransactionError(`${e}`);
+            }
             setSending(false);
-
-            setSignature(signature);
-            console.log(`Sent and confirmed tx: ${signature}`);
           }}
         >
           {sending ? <CircularProgress size="2em" /> : "Sign and Send"}
@@ -132,6 +142,7 @@ export default function Dev() {
             Tx {signature}
           </Link>
         )}
+        {sendTransactionError && <div>{sendTransactionError}</div>}
       </div>
       <div>
         {txData?.transactionMessage.instructions.map((instruction, index) => (
