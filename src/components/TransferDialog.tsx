@@ -14,13 +14,13 @@ import { Token, TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { useMemo, useState } from "react";
 import { useWallet } from "../context/WalletProvider";
-import { shortenAddress } from "../tools/address";
+import { shortenAddress } from "../lib/address";
 import {
   amountToUiAmount,
   createIdempotentAssociatedTokenAccountInstruction,
   getAssociatedTokenAccountAddress,
   uiAmountToAmount,
-} from "../tools/token";
+} from "../lib/token";
 
 /**
  * Create idempotent and transfer checked

@@ -32,7 +32,8 @@
         "writeText": true
       },
       "dialog": {
-        "open": true
+        "open": true,
+        "message": true
       }
     },
     "bundle": {

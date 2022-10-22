@@ -18,8 +18,8 @@ import {
   amountToUiAmount,
   getUserTokenAccountsWithContext,
   TokenAccount,
-} from "../tools/token";
-import { getTokenMap } from "../tools/token-map";
+} from "../lib/token";
+import { getTokenMap } from "../lib/token-map";
 import { useWallet } from "./WalletProvider";
 import { u64 } from "@solana/spl-token";
 import * as math from "mathjs";

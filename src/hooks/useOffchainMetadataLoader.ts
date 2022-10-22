@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { MetadataJSONStructure } from "../tools/nft/off-chain-metadata";
+import { MetadataJSONStructure } from "../lib/nft/off-chain-metadata";
 
 const useOffchainMetadataLoader = (uri: string) => {
   return useQuery<MetadataJSONStructure>(

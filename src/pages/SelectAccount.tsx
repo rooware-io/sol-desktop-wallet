@@ -1,33 +1,44 @@
 import { Box, Button, Paper } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
 import { useWallet } from "../context/WalletProvider";
-import { open } from "@tauri-apps/api/dialog";
-import { invoke } from "@tauri-apps/api";
 import { watch } from "tauri-plugin-fs-watch-api";
-import { appDir, join } from "@tauri-apps/api/path";
+import { appDir } from "@tauri-apps/api/path";
 import { useNavigate } from "react-router-dom";
-import { BaseDirectory, readDir, readTextFile } from "@tauri-apps/api/fs";
-import { Keypair } from "@solana/web3.js";
 import { UserSettings, userSettingsStore } from "./Settings";
-
-interface FileSystemAccount {
-  address: string;
-}
+import {
+  AccountStore,
+  addChildAccount,
+  generateMnemonic,
+  importKeypair,
+  loadAccounts,
+  saveMnemonic,
+} from "../lib/api";
+import { shortenAddress } from "../lib/address";
+import { Add } from "@mui/icons-material";
 
 export default function SelectAccountPage() {
   const { setFileSystemWallet } = useWallet();
   const navigate = useNavigate();
 
-  const [fsAccounts, setFsAccounts] = useState<FileSystemAccount[]>([]);
+  const [accountStore, setAccountStore] = useState<AccountStore>({
+    keypair: {},
+    mnemonic: {},
+  });
 
   useEffect(() => {
-    loadFsAccounts();
+    loadAllAccounts();
   }, []);
 
   useEffect(() => {
     async function startWatching() {
-      console.log(`watching ${`${await appDir()}/keypairs`}`);
-      return watch(`${await appDir()}/keypairs`, {}, loadFsAccounts);
+      console.log(
+        `watching ${await appDir()}/keypairs and ${await appDir()}/mnemonics`
+      );
+      return watch(
+        [`${await appDir()}/keypairs`, `${await appDir()}/mnemonics`],
+        {},
+        loadAllAccounts
+      );
     }
     const stopWatchingPromise = startWatching();
     return () => {
@@ -38,39 +49,9 @@ export default function SelectAccountPage() {
     };
   }, []);
 
-  const loadFsAccounts = useCallback(async () => {
-    const files = await readDir("keypairs", { dir: BaseDirectory.App });
-    const keypairPaths = files.filter(
-      (f) => f.name && f.name.split(".").pop() === "json"
-    );
-    const accounts = await Promise.all(
-      keypairPaths.map(async (kpPath) => {
-        const keypair = await readTextFile(
-          await join("keypairs", kpPath.name!),
-          {
-            dir: BaseDirectory.App,
-          }
-        );
-        return {
-          address: Keypair.fromSecretKey(
-            new Uint8Array(JSON.parse(keypair))
-          ).publicKey.toBase58(),
-        };
-      })
-    );
-    setFsAccounts(accounts);
-  }, []);
-
-  const importKeypair = useCallback(async () => {
-    const keypairPath = (await open({
-      filters: [
-        {
-          name: "JSON",
-          extensions: ["json"],
-        },
-      ],
-    })) as string;
-    await invoke("import_keypair", { keypairPath });
+  const loadAllAccounts = useCallback(async () => {
+    const accountStore = await loadAccounts();
+    setAccountStore(accountStore);
   }, []);
 
   const selectWallet = useCallback(
@@ -82,25 +63,148 @@ export default function SelectAccountPage() {
     [navigate]
   );
 
-  return (
-    <>
-      <Button variant="contained" onClick={importKeypair}>
-        Import keypair
-      </Button>
-      {fsAccounts.map((account) => (
-        <Box
-          key={account.address}
-          p={2}
-          onClick={() => selectWallet(account.address)}
-          style={{ cursor: "pointer" }}
-        >
-          <Paper elevation={2} sx={{ width: "600px" }}>
-            <Box p={2}>{account.address}</Box>
-          </Paper>
-        </Box>
-      ))}
-    </>
+  const onCreateMnemonic = useCallback(async () => {
+    try {
+      const mnemonic = await generateMnemonic();
+      window.alert(`save following phrase: ${mnemonic.phrase}`);
+      await saveMnemonic(mnemonic.phrase);
+    } catch (e) {
+      console.log(e);
+    }
+  }, []);
+
+  const onImportKeypair = useCallback(async () => {
+    try {
+      await importKeypair();
+    } catch (e) {
+      console.log(e);
+    }
+  }, []);
+
+  const onAddChildAccount = useCallback(
+    (baseAddress: string) => async () => {
+      try {
+        await addChildAccount(baseAddress);
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    []
   );
 
-  return <></>;
+  return (
+    <>
+      <div style={{ margin: "20px 0 10px 0" }}>Imported keypairs</div>
+      <Paper elevation={2} sx={{ width: "600px" }}>
+        <Box p={2}>
+          <Button
+            variant="contained"
+            onClick={onImportKeypair}
+            style={{ marginBottom: "10px" }}
+          >
+            Import keypair
+          </Button>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+          >
+            {Object.entries(accountStore.keypair).length === 0
+              ? "None"
+              : Object.entries(accountStore.keypair).map(
+                  ([accountAddress, account]) => (
+                    <Button
+                      key={accountAddress}
+                      variant="contained"
+                      fullWidth
+                      onClick={() => selectWallet(accountAddress)}
+                      style={{
+                        backgroundColor: "gray",
+                        color: "white",
+                        padding: "8px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {account.label} ({shortenAddress(accountAddress)})
+                    </Button>
+                  )
+                )}
+          </div>
+        </Box>
+      </Paper>
+      <div style={{ margin: "50px 0 10px 0" }}>Mnemonics</div>
+      <Paper elevation={2}>
+        <Box p={2}>
+          <Button
+            variant="contained"
+            onClick={onCreateMnemonic}
+            style={{ marginBottom: "10px" }}
+          >
+            Create mnemonic
+          </Button>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+          >
+            {Object.entries(accountStore.mnemonic).length === 0
+              ? "None"
+              : Object.entries(accountStore.mnemonic).map(
+                  ([mnemonicBaseAddress, mnemonic]) => (
+                    <div key={mnemonicBaseAddress}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          gap: "8px",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <div>{mnemonic.label}</div>
+                        <Button
+                          variant="text"
+                          onClick={onAddChildAccount(mnemonic.base_address)}
+                        >
+                          <Add />
+                        </Button>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                        }}
+                      >
+                        {Object.entries(mnemonic.accounts).map(
+                          ([accountAddress, account]) => (
+                            <Button
+                              key={accountAddress}
+                              variant="contained"
+                              fullWidth
+                              onClick={() => selectWallet(accountAddress)}
+                              style={{
+                                backgroundColor: "gray",
+                                color: "white",
+                                padding: "8px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {account.label} ({shortenAddress(accountAddress)})
+                            </Button>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )
+                )}
+          </div>
+        </Box>
+      </Paper>
+    </>
+  );
 }

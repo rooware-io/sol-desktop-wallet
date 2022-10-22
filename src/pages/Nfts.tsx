@@ -20,14 +20,14 @@ import {
   getTokenAccountInfoMetadatas,
   getMetadataEditions,
   EditionData,
-} from "../tools/nft/nft";
+} from "../lib/nft/nft";
 import {
   Edition,
   Key,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import TransferDialog from "../components/TransferDialog";
-import { TokenAccount } from "../tools/token";
+import { TokenAccount } from "../lib/token";
 import { u64 } from "@solana/spl-token";
 import { useConnection } from "../context/ConnectionProvider";
 
