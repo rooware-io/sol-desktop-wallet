@@ -1,6 +1,6 @@
 import { Box, Button, Paper } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
-import { useWallet } from "../context/WalletProvider";
+import { useWallet, walletType } from "../context/WalletProvider";
 import { watch } from "tauri-plugin-fs-watch-api";
 import { appDir } from "@tauri-apps/api/path";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +17,7 @@ import { shortenAddress } from "../lib/address";
 import { Add } from "@mui/icons-material";
 
 export default function SelectAccountPage() {
-  const { setFileSystemWallet } = useWallet();
+  const { setWallet } = useWallet();
   const navigate = useNavigate();
 
   const [accountStore, setAccountStore] = useState<AccountStore>({
@@ -55,8 +55,8 @@ export default function SelectAccountPage() {
   }, []);
 
   const selectWallet = useCallback(
-    async (accountAddress: string) => {
-      setFileSystemWallet(accountAddress);
+    async (accountAddress: string, type: walletType) => {
+      setWallet(accountAddress, type);
       await userSettingsStore.set(UserSettings.WALLET, accountAddress);
       navigate("/");
     },
@@ -119,7 +119,9 @@ export default function SelectAccountPage() {
                       key={accountAddress}
                       variant="contained"
                       fullWidth
-                      onClick={() => selectWallet(accountAddress)}
+                      onClick={() =>
+                        selectWallet(accountAddress, "importedKeypair")
+                      }
                       style={{
                         backgroundColor: "gray",
                         color: "white",
@@ -186,7 +188,9 @@ export default function SelectAccountPage() {
                               key={accountAddress}
                               variant="contained"
                               fullWidth
-                              onClick={() => selectWallet(accountAddress)}
+                              onClick={() =>
+                                selectWallet(accountAddress, "mnemonicDerived")
+                              }
                               style={{
                                 backgroundColor: "gray",
                                 color: "white",
