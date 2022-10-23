@@ -10,13 +10,12 @@ import {
 import { useEffect, useState } from "react";
 import {
   AddressLookupTableAccount,
-  sendAndConfirmRawTransaction,
+  PublicKey,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
 import { useConnection } from "../context/ConnectionProvider";
 import { useWallet } from "../context/WalletProvider";
-import base58 from "bs58";
 
 export default function Dev() {
   const [rawTransaction, setRawTransaction] = useState<string>("");
@@ -52,7 +51,7 @@ export default function Dev() {
           );
         const addressLookupTableAccounts = addressLookupTableAccountInfos.map(
           (accountInfo, index) => {
-            const key =
+            const key: PublicKey =
               versionedTransaction.message.addressTableLookups[index]
                 .accountKey;
             if (!accountInfo)
@@ -104,30 +103,13 @@ export default function Dev() {
           onClick={async () => {
             if (!wallet || !txData) return;
             setSending(true);
-            setSendTransactionError(undefined);
-            const { lastValidBlockHeight, blockhash } =
-              await connection.getLatestBlockhash();
+            const { blockhash } = await connection.getLatestBlockhash();
             let versionedTransaction = txData.versionedTransaction;
             versionedTransaction.message.recentBlockhash = blockhash;
-
             try {
-              versionedTransaction = wallet.signTransaction(
-                txData.versionedTransaction
-              );
-              const signature = await sendAndConfirmRawTransaction(
-                connection,
-                Buffer.from(versionedTransaction.serialize()),
-                {
-                  signature: base58.encode(versionedTransaction.signatures[0]),
-                  lastValidBlockHeight,
-                  blockhash,
-                }
-              );
-              setSignature(signature);
-              console.log(`Sent and confirmed tx: ${signature}`);
-            } catch (e: any) {
-              console.error(e);
-              setSendTransactionError(`${e}`);
+              await wallet.sendTransaction(versionedTransaction);
+            } catch (err: any) {
+              console.error(err);
             }
             setSending(false);
           }}

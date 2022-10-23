@@ -24,6 +24,8 @@ names = { version = "0.14.0", default-features = false }
 anyhow = "1.0.64"
 solana-sdk = "1.14.5"
 tiny-bip39 = "0.8.2"
+bincode = "1.3.3"
+base64 ="0.13.0"
 
 [features]
 # by default Tauri runs in production mode

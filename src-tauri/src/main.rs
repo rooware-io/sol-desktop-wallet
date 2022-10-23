@@ -66,7 +66,8 @@ fn main() {
             generate_mnemonic,
             save_mnemonic,
             get_all_accounts,
-            add_child_account
+            add_child_account,
+            sign_transaction
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

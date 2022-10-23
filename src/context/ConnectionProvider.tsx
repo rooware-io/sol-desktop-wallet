@@ -10,10 +10,7 @@ import {
 import { Connection } from "@solana/web3.js";
 import { UserSettings, userSettingsStore } from "../pages/Settings";
 
-export const RPC_ENDPOINTS = [
-  "https://ssc-dao.genesysgo.net",
-  "https://api.devnet.solana.com",
-];
+export const RPC_ENDPOINTS = ["https://api.devnet.solana.com"];
 
 const ConnectionContext = createContext<{
   connection: Connection;

@@ -4,7 +4,6 @@ import { useWallet, walletType } from "../context/WalletProvider";
 import { watch } from "tauri-plugin-fs-watch-api";
 import { appDir } from "@tauri-apps/api/path";
 import { useNavigate } from "react-router-dom";
-import { UserSettings, userSettingsStore } from "./Settings";
 import {
   AccountStore,
   addChildAccount,
@@ -55,9 +54,12 @@ export default function SelectAccountPage() {
   }, []);
 
   const selectWallet = useCallback(
-    async (accountAddress: string, type: walletType) => {
-      setWallet(accountAddress, type);
-      await userSettingsStore.set(UserSettings.WALLET, accountAddress);
+    async (
+      accountAddress: string,
+      type: walletType,
+      mnemonicBaseAddress?: string
+    ) => {
+      setWallet(accountAddress, type, mnemonicBaseAddress);
       navigate("/");
     },
     [navigate]
@@ -69,7 +71,7 @@ export default function SelectAccountPage() {
       window.alert(`save following phrase: ${mnemonic.phrase}`);
       await saveMnemonic(mnemonic.phrase);
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   }, []);
 
@@ -77,7 +79,7 @@ export default function SelectAccountPage() {
     try {
       await importKeypair();
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   }, []);
 
@@ -86,7 +88,7 @@ export default function SelectAccountPage() {
       try {
         await addChildAccount(baseAddress);
       } catch (e) {
-        console.log(e);
+        console.error(e);
       }
     },
     []
@@ -120,7 +122,7 @@ export default function SelectAccountPage() {
                       variant="contained"
                       fullWidth
                       onClick={() =>
-                        selectWallet(accountAddress, "importedKeypair")
+                        selectWallet(accountAddress, "ImportedKeypair")
                       }
                       style={{
                         backgroundColor: "gray",
@@ -189,7 +191,11 @@ export default function SelectAccountPage() {
                               variant="contained"
                               fullWidth
                               onClick={() =>
-                                selectWallet(accountAddress, "mnemonicDerived")
+                                selectWallet(
+                                  accountAddress,
+                                  "MnemonicDerived",
+                                  account.mnemonic_base_address
+                                )
                               }
                               style={{
                                 backgroundColor: "gray",

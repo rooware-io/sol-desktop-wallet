@@ -9,7 +9,7 @@ import {
   ListItem,
   Typography,
 } from "@mui/material";
-import { Transaction } from "@solana/web3.js";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 import { useWallet } from "../context/WalletProvider";
 
 export function ApproveDialog({
@@ -21,7 +21,7 @@ export function ApproveDialog({
   onClose: () => void;
   signRequest: {
     transaction: Transaction;
-    onApprove: (signedTransaction: Transaction) => void;
+    onApprove: (signedTransaction: VersionedTransaction) => void;
   };
 }) {
   const { wallet } = useWallet();
@@ -73,7 +73,7 @@ export function ApproveDialog({
         <Button onClick={onClose}>Reject</Button>
         <Button
           onClick={async () => {
-            const signedTransaction = wallet.signTransaction(transaction);
+            const signedTransaction = await wallet.signTransaction(transaction);
             onApprove(signedTransaction);
           }}
           variant="contained"

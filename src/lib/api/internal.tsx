@@ -1,6 +1,7 @@
-import { PublicKey } from "@solana/web3.js";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 import { invoke } from "@tauri-apps/api";
 import { open } from "@tauri-apps/api/dialog";
+import { walletType } from "../../context/WalletProvider";
 
 async function importKeypair() {
   const keypairPath = (await open({
@@ -57,7 +58,9 @@ export interface StoredMnemonic {
 export interface MnemonicAccount {
   label: string;
   address: string;
-  mnemonic_label: string;
+  derivation_index: string;
+  change: number;
+  mnemonic_base_address: string;
 }
 
 export interface AccountStore {
@@ -70,10 +73,41 @@ async function loadAccounts(): Promise<AccountStore> {
   return accounts;
 }
 
+export interface SignTransactionResponse {
+  signed_transaction: string;
+}
+
+async function signTransaction(
+  transaction: Transaction | VersionedTransaction,
+  accountAddress: string,
+  walletType: walletType,
+  mnemonicBasedAddress?: String
+): Promise<string> {
+  const transactionSerialized = transaction.serialize({
+    verifySignatures: false,
+  });
+  const signedTransaction = await invoke<SignTransactionResponse>(
+    "sign_transaction",
+    {
+      transactionSerialized: transactionSerialized.toString("base64"),
+      accountAddress,
+      accountType:
+        walletType === "ImportedKeypair"
+          ? { ImportedKeypair: {} }
+          : {
+              MnemonicDerived: { mnemonic_base_address: mnemonicBasedAddress },
+            },
+    }
+  );
+
+  return signedTransaction.signed_transaction;
+}
+
 export {
   importKeypair,
   generateMnemonic,
   saveMnemonic,
   addChildAccount,
   loadAccounts,
+  signTransaction,
 };

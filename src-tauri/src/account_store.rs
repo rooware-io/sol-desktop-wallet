@@ -24,8 +24,9 @@ pub struct KeypairAccount {
 pub struct MnemonicAccount {
     pub label: String,
     pub address: String,
-    pub derivation_index: u32,
+    pub child_index: u32,
     pub change: u32,
+    pub mnemonic_base_address: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
@@ -44,10 +45,16 @@ pub struct StoredMnemonic {
     pub derivation_type: DerivationType,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub enum AccountType {
+    ImportedKeypair,
+    MnemonicDerived { mnemonic_base_address: String },
+}
+
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct SavedAccountsStore {
     #[serde(skip)]
-    app_dir: PathBuf,
+    pub app_dir: PathBuf,
     #[serde(skip)]
     account_store_file: PathBuf,
     pub keypair: HashMap<String, KeypairAccount>,
@@ -150,8 +157,9 @@ impl SavedAccountsStore {
             MnemonicAccount {
                 address: pubkey.to_string(),
                 label: generator.next().unwrap(),
-                derivation_index: 0,
+                child_index: 0,
                 change: 0,
+                mnemonic_base_address: pubkey.to_string(),
             },
         );
 
@@ -174,60 +182,61 @@ impl SavedAccountsStore {
         base_address: String,
         child_index: Option<u32>,
     ) -> Result<()> {
-        let mnemonic = self.mnemonic.get_mut(&base_address).unwrap();
-        // if let Some(mnemonic) = mnemonic {
-        let child_index = child_index.unwrap_or_else(|| {
-            let mut indices: Vec<u32> = mnemonic
-                .accounts
-                .iter()
-                .map(|(_, account)| account.derivation_index)
-                .collect();
-            indices.sort();
-            for i in 0..indices.len() {
-                if indices[i] != i as u32 {
-                    return i as u32;
+        let mnemonic = self.mnemonic.get_mut(&base_address);
+        if let Some(mnemonic) = mnemonic {
+            let child_index = child_index.unwrap_or_else(|| {
+                let mut indices: Vec<u32> = mnemonic
+                    .accounts
+                    .iter()
+                    .map(|(_, account)| account.child_index)
+                    .collect();
+                indices.sort();
+                for i in 0..indices.len() {
+                    if indices[i] != i as u32 {
+                        return i as u32;
+                    }
                 }
-            }
-            indices.len() as u32
-        });
+                indices.len() as u32
+            });
 
-        let derivation_path = match mnemonic.derivation_type {
-            DerivationType::Bip44 => DerivationPath::new_bip44(Some(child_index), None),
-            DerivationType::Bip44WithChange => {
-                DerivationPath::new_bip44(Some(child_index), Some(0))
+            let derivation_path = match mnemonic.derivation_type {
+                DerivationType::Bip44 => DerivationPath::new_bip44(Some(child_index), None),
+                DerivationType::Bip44WithChange => {
+                    DerivationPath::new_bip44(Some(child_index), Some(0))
+                }
+            };
+            let mnemonic_path = self
+                .app_dir
+                .join(format!("mnemonics/{}", mnemonic.location));
+            let mnemonic_phrase = fs::read_to_string(&mnemonic_path)?;
+            let seed = generate_seed_from_seed_phrase_and_passphrase(&mnemonic_phrase, "");
+            let keypair = keypair_from_seed_and_derivation_path(&seed, Some(derivation_path))
+                .map_err(|err| anyhow!(err.to_string()))?;
+            let pubkey = keypair.pubkey();
+            if mnemonic.accounts.contains_key(&pubkey.to_string()) {
+                bail!("Mnemonic with base account {} was already imported", pubkey);
             }
-        };
-        let mnemonic_path = self
-            .app_dir
-            .join(format!("mnemonics/{}", mnemonic.location));
-        let mnemonic_phrase = fs::read_to_string(&mnemonic_path)?;
-        let seed = generate_seed_from_seed_phrase_and_passphrase(&mnemonic_phrase, "");
-        let keypair = keypair_from_seed_and_derivation_path(&seed, Some(derivation_path))
-            .map_err(|err| anyhow!(err.to_string()))?;
-        let pubkey = keypair.pubkey();
-        if mnemonic.accounts.contains_key(&pubkey.to_string()) {
-            bail!("Mnemonic with base account {} was already imported", pubkey);
+
+            let target_file = format!("{}.txt", pubkey);
+            let target_path = self.app_dir.join(format!("mnemonics/{}", target_file));
+            let mut f = File::create(&target_path)?;
+            f.write_all(mnemonic_phrase.as_bytes())?;
+
+            let mut generator = Generator::default();
+            mnemonic.accounts.insert(
+                pubkey.to_string(),
+                MnemonicAccount {
+                    address: pubkey.to_string(),
+                    label: generator.next().unwrap(),
+                    child_index,
+                    change: 0,
+                    mnemonic_base_address: pubkey.to_string(),
+                },
+            );
+            self.save()?;
+        } else {
+            bail!("Mnemonic with base address {} not found", base_address)
         }
-
-        let target_file = format!("{}.txt", pubkey);
-        let target_path = self.app_dir.join(format!("mnemonics/{}", target_file));
-        let mut f = File::create(&target_path)?;
-        f.write_all(mnemonic_phrase.as_bytes())?;
-
-        let mut generator = Generator::default();
-        mnemonic.accounts.insert(
-            pubkey.to_string(),
-            MnemonicAccount {
-                address: pubkey.to_string(),
-                label: generator.next().unwrap(),
-                derivation_index: child_index,
-                change: 0,
-            },
-        );
-        self.save()?;
-        // } else {
-        //     bail!("Mnemonic with base address {} not found", base_address)
-        // }
         Ok(())
     }
 }

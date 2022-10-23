@@ -170,15 +170,19 @@ export default function TransferDialog({
                 );
 
             setSending(true);
-            const signature = await wallet.sendInstructions(ixs);
-            setSending(false);
-
-            setPreviousTransfers([
-              ...previousTransfers,
-              { signature, uiAmount, uiRecipient },
-            ]);
-            setUiAmount("");
-            console.log(`Sent and confirmed tx: ${signature}`);
+            try {
+              const signature = await wallet.sendInstructions(ixs);
+              setPreviousTransfers([
+                ...previousTransfers,
+                { signature, uiAmount, uiRecipient },
+              ]);
+              console.log(`Sent and confirmed tx: ${signature}`);
+            } catch (err: any) {
+              console.error(err);
+            } finally {
+              setUiAmount("");
+              setSending(false);
+            }
           }}
           disabled={sending}
         >
