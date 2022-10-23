@@ -13,8 +13,6 @@ use std::{
     path::PathBuf,
 };
 
-use crate::DerivationType;
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeypairAccount {
     pub label: String,
@@ -28,6 +26,13 @@ pub struct MnemonicAccount {
     pub address: String,
     pub derivation_index: u32,
     pub change: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub enum DerivationType {
+    Bip44,
+    #[default]
+    Bip44WithChange,
 }
 
 #[derive(Default, Debug, Serialize, Deserialize)]
