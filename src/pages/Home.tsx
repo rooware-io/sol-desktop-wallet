@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import TransferDialog from "../components/TransferDialog";
-import { shortenAddress } from "../tools/address";
+import { shortenAddress } from "../lib/address";
 import { NATIVE_MINT, u64 } from "@solana/spl-token";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { writeText } from "@tauri-apps/api/clipboard";
@@ -19,7 +19,7 @@ import { useState } from "react";
 import { useWallet } from "../context/WalletProvider";
 import { PublicKey } from "@solana/web3.js";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { amountToUiAmount } from "../tools/token";
+import { amountToUiAmount } from "../lib/token";
 import { useWalletAccounts } from "../context/WalletAccountsProvider";
 
 export default function HomePage() {

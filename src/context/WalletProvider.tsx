@@ -1,12 +1,11 @@
 import {
   Connection,
-  Keypair,
   PublicKey,
+  PublicKeyInitData,
   Transaction,
   TransactionInstruction,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { readTextFile, BaseDirectory } from "@tauri-apps/api/fs";
 import {
   createContext,
   FC,
@@ -16,46 +15,41 @@ import {
   useEffect,
   useState,
 } from "react";
+import { signTransaction } from "../lib/api";
 import { UserSettings, userSettingsStore } from "../pages/Settings";
 import { useConnection } from "./ConnectionProvider";
 
-interface Wallet {
-  label: string;
+class Wallet {
   publicKey: PublicKey;
-  /** Handles setting up the transaction and assumes a single signer, the wallet */
-  sendInstructions: (instructions: TransactionInstruction[]) => Promise<string>;
-  sendTransaction: () => Promise<string>;
-  signTransaction<T extends Transaction | VersionedTransaction>(
-    transaction: T
-  ): T;
-}
+  mnemonicBaseAddress: string | undefined;
 
-class FileSystemWallet implements Wallet {
-  label = "keypair";
-
-  constructor(readonly connection: Connection, private keypair: Keypair) {}
-
-  get publicKey() {
-    return this.keypair.publicKey;
+  constructor(
+    readonly connection: Connection,
+    address: PublicKeyInitData,
+    readonly type: walletType,
+    mnemonicBaseAddress?: string
+  ) {
+    this.publicKey = new PublicKey(address);
+    if (type === "MnemonicDerived" && !mnemonicBaseAddress)
+      throw "Mnemonic base address needs to be provided for a mnemonic-based account";
+    else this.mnemonicBaseAddress = mnemonicBaseAddress;
   }
 
-  async sendInstructions(instructions: TransactionInstruction[]) {
+  async sendInstructions(
+    instructions: TransactionInstruction[]
+  ): Promise<string> {
     const { blockhash, lastValidBlockHeight } =
       await this.connection.getLatestBlockhash();
 
     const tx = new Transaction({
-      feePayer: this.keypair.publicKey,
+      feePayer: this.publicKey,
       blockhash,
       lastValidBlockHeight,
     });
     tx.instructions = instructions;
-    const signature = await this.connection.sendTransaction(
-      tx,
-      [this.keypair],
-      {
-        skipPreflight: false,
-      }
-    );
+    const signedTransaction = await this.signTransaction(tx);
+
+    const signature = await this.connection.sendTransaction(signedTransaction);
     console.log(`Sent ${signature}`);
 
     await this.connection.confirmTransaction({
@@ -67,25 +61,55 @@ class FileSystemWallet implements Wallet {
     return signature;
   }
 
-  async sendTransaction(): Promise<string> {
-    throw new Error("Not implemented");
+  async sendTransaction(
+    transaction: Transaction | VersionedTransaction
+  ): Promise<string> {
+    const { blockhash, lastValidBlockHeight } =
+      await this.connection.getLatestBlockhash();
+
+    const signedTransaction = await this.signTransaction(transaction);
+
+    const signature = await this.connection.sendTransaction(signedTransaction);
+    console.log(`Sent ${signature}`);
+
+    await this.connection.confirmTransaction({
+      blockhash,
+      lastValidBlockHeight,
+      signature,
+    });
+
+    return signature;
   }
 
-  signTransaction<T extends Transaction | VersionedTransaction>(
+  async signTransaction<T extends Transaction | VersionedTransaction>(
     transaction: T
-  ) {
-    if ("message" in transaction) {
-      transaction.sign([this.keypair]);
-    } else {
-      transaction.sign(this.keypair);
-    }
-    return transaction;
+  ): Promise<VersionedTransaction> {
+    const transactionSerialized = await signTransaction(
+      transaction,
+      this.publicKey.toBase58(),
+      this.type,
+      this.mnemonicBaseAddress
+    );
+    const transactionBuffer = Buffer.from(transactionSerialized, "base64");
+    return VersionedTransaction.deserialize(transactionBuffer);
   }
+}
+
+export type walletType = "ImportedKeypair" | "MnemonicDerived";
+
+export interface SavedWallet {
+  address: string;
+  type: walletType;
+  mnemonicBaseAddress: string;
 }
 
 const WalletContext = createContext<{
   wallet: Wallet | undefined;
-  setFileSystemWallet: (keypairFilename: string) => void;
+  setWallet: (
+    address: string,
+    type: walletType,
+    mnemonicBaseAddress?: string
+  ) => void;
 } | null>(null);
 
 export function useWallet() {
@@ -97,48 +121,43 @@ export function useWallet() {
 }
 
 const WalletProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
-  const [wallet, setWallet] = useState<Wallet>();
+  const [wallet, setWalletInternal] = useState<Wallet>();
   const { connection } = useConnection();
 
-  const setFileSystemWallet = useCallback(
-    async (fileName: string) => {
-      const keypair = Keypair.fromSecretKey(
-        new Uint8Array(
-          JSON.parse(
-            await readTextFile(`keypairs/${fileName}.json`, {
-              dir: BaseDirectory.App,
-            })
-          )
-        )
+  const setWallet = useCallback(
+    async (address: string, type: walletType, mnemonicBaseAddress?: string) => {
+      setWalletInternal(
+        new Wallet(connection, address, type, mnemonicBaseAddress)
       );
-      setWallet(new FileSystemWallet(connection, keypair));
+      await userSettingsStore.set(UserSettings.WALLET, {
+        address,
+        type,
+        mnemonicBaseAddress,
+      } as SavedWallet);
     },
     [connection]
   );
 
   useEffect(() => {
     (async function () {
-      const savedWallet = await userSettingsStore.get<string>(
+      const savedWallet = await userSettingsStore.get<SavedWallet>(
         UserSettings.WALLET
       );
       if (savedWallet) {
         try {
-          const keypair = Keypair.fromSecretKey(
-            new Uint8Array(
-              JSON.parse(
-                await readTextFile(`keypairs/${savedWallet}.json`, {
-                  dir: BaseDirectory.App,
-                })
-              )
+          setWalletInternal(
+            new Wallet(
+              connection,
+              savedWallet.address,
+              savedWallet.type,
+              savedWallet.mnemonicBaseAddress
             )
           );
-          /* stored wallet might needs to specify what type it is to know what class to instantiate */
-          setWallet(new FileSystemWallet(connection, keypair));
         } catch {
           console.log(
             `Error while loading saved wallet ${savedWallet}. Clearing '${UserSettings.WALLET}' cache entry.`
           );
-          userSettingsStore.delete(UserSettings.WALLET);
+          await userSettingsStore.delete(UserSettings.WALLET);
         }
       }
     })();
@@ -148,7 +167,7 @@ const WalletProvider: FC<PropsWithChildren<{}>> = ({ children }) => {
     <WalletContext.Provider
       value={{
         wallet,
-        setFileSystemWallet,
+        setWallet,
       }}
     >
       {children}

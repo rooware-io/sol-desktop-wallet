@@ -14,13 +14,13 @@ import { Token, TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { useMemo, useState } from "react";
 import { useWallet } from "../context/WalletProvider";
-import { shortenAddress } from "../tools/address";
+import { shortenAddress } from "../lib/address";
 import {
   amountToUiAmount,
   createIdempotentAssociatedTokenAccountInstruction,
   getAssociatedTokenAccountAddress,
   uiAmountToAmount,
-} from "../tools/token";
+} from "../lib/token";
 
 /**
  * Create idempotent and transfer checked
@@ -170,15 +170,19 @@ export default function TransferDialog({
                 );
 
             setSending(true);
-            const signature = await wallet.sendInstructions(ixs);
-            setSending(false);
-
-            setPreviousTransfers([
-              ...previousTransfers,
-              { signature, uiAmount, uiRecipient },
-            ]);
-            setUiAmount("");
-            console.log(`Sent and confirmed tx: ${signature}`);
+            try {
+              const signature = await wallet.sendInstructions(ixs);
+              setPreviousTransfers([
+                ...previousTransfers,
+                { signature, uiAmount, uiRecipient },
+              ]);
+              console.log(`Sent and confirmed tx: ${signature}`);
+            } catch (err: any) {
+              console.error(err);
+            } finally {
+              setUiAmount("");
+              setSending(false);
+            }
           }}
           disabled={sending}
         >

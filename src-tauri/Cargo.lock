@@ -69,6 +69,9 @@ name = "app"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64 0.13.0",
+ "bincode",
+ "names",
  "serde",
  "serde_json",
  "solana-sdk",
@@ -76,6 +79,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-fs-watch",
  "tauri-plugin-store",
+ "tiny-bip39",
 ]
 
 [[package]]
@@ -2006,6 +2010,15 @@ dependencies = [
  "net2",
  "winapi 0.2.8",
  "ws2_32-sys",
+]
+
+[[package]]
+name = "names"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bddcd3bf5144b6392de80e04c347cd7fab2508f6df16a85fc496ecd5cec39bc"
+dependencies = [
+ "rand 0.8.5",
 ]
 
 [[package]]
