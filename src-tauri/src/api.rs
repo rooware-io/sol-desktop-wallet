@@ -7,7 +7,7 @@ use solana_sdk::{
     derivation_path::DerivationPath,
     signature::{
         generate_seed_from_seed_phrase_and_passphrase, keypair_from_seed_and_derivation_path,
-        read_keypair_file, Keypair,
+        read_keypair_file,
     },
     transaction::Transaction,
 };
