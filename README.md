@@ -25,19 +25,18 @@ https://tauri.app/v1/guides/getting-started/prerequisites/
 Create a config folder `~/.config/desktop-wallet/` and add a `keypair.json`
 The app only has access to that application folder as per tauri.conf.json
 
-MVP
+What can this wallet do
 - Show all user token accounts with logo and amounts
 - Order token accounts by USD value, then by mint in base58
-- Hide empty token accounts by default to reduce clutter
 - Transfer SOL and tokens
 - Uses nightly connect to allow usage in any dApp
+- Display NFTs and transfer
 
 Future features:
-- Identify/fetch NFTs and show them in NFT page
 - Allow generation of seed and storage with password encryption
 - Address book and easy send between loaded wallets
-- RPC switcher with custom RPC settings
 - Support hardware wallets
+- RPC switcher with custom RPC settings
 - Settings page to configure it all
 
 Potential advanced features

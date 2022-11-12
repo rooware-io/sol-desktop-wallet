@@ -29,11 +29,16 @@ pub struct MnemonicAccount {
     pub mnemonic_base_address: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum DerivationType {
     Bip44,
-    #[default]
     Bip44WithChange,
+}
+
+impl Default for DerivationType {
+    fn default() -> Self {
+        DerivationType::Bip44WithChange
+    }
 }
 
 #[derive(Default, Debug, Serialize, Deserialize)]
@@ -62,7 +67,7 @@ pub struct SavedAccountsStore {
 }
 
 impl SavedAccountsStore {
-    const ACCOUNT_STORE_FILENAME: &str = "account_store.json";
+    const ACCOUNT_STORE_FILENAME: &'static str = "account_store.json";
 
     pub fn load(app_dir: PathBuf) -> Result<Self> {
         let account_store_file = app_dir.join(Self::ACCOUNT_STORE_FILENAME);
